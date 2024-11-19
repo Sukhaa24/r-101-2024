@@ -23,6 +23,7 @@ A function provides an action over objects or R itself.
 here::i_am("r-101-2024.Rproj")
 ## library loads the functions defined in a package (here)
 library(here)
+library(dplyr)
 ```
 
 #### Functions that operate on objects
@@ -265,6 +266,7 @@ comparisons (comparisons are vectorized).
 ```{r}
 z <- seq(-2, 2)
 y <- z > 0
+z
 y
 class(y)
 typeof(y)
@@ -272,7 +274,7 @@ typeof(y)
 
 ```{r}
 z == 0 ## equality
-z != 0 ## difference
+z != 0 ## not equal to difference
 z >= 1
 ```
 
@@ -423,3 +425,115 @@ class/type.
 ```{r}
 sapply(x, class)
 ```
+
+## Programming structures
+### if else
+
+```{r}
+x<- c(0,1e-5,5,10)
+log(x)
+x*log(x) # setting some conditions ifelse
+```
+```{r}
+ifelse(x>0, x*log(x),0) # if x>0 then multiply otherwise 0 seperated by 0 
+# condition, if true, if false then this #IT DEPENDS ON WHERE WE USE, Its not always useful also.
+```
+```{r}
+y<- c(0,1e-5,5,10,-5,4.5)
+ifelse(y>0, y*log(y),0)
+```
+```{r}
+ifelse(y>0, y*log(y),ifelse(y<0, NaN,0)) # in -ve value we get NaN as we command i.e. -5 is -ve so Nan and not zero 
+```
+```{r}
+ifelse(x>0, x*log(x),"0") # if i put "0" as character. classic R works and in dplyr it complains
+```
+
+```{r}
+case_when(x>0 ~ x*log(x), #dplyr library
+          x==0 ~ 0,
+          .default = NaN) # it is fine to get NaN response in R it is normal
+```
+```{r}
+case_when(y>0 ~ y*log(y), #dplyr library
+          y==0 ~ 0,
+          .default = NaN) # better version of if else {we set conditions}
+```
+
+#### Programming Instruction
+
+```{r}
+x
+if(x[1] < 0) { 
+  print("x*log(x) is not defined") 
+} else { 
+    print(x[1]*log(x[1]))
+  }
+```
+
+```{r}
+x <- 5 # -5 . is it related to the previous data sets
+if(x[1] < 0) { 
+  print("x*log(x) is not defined") 
+} else { 
+    print(x[1]*log(x[1]))
+}
+print("done")
+```
+```{r}
+x <- c(2,2) # -5 . is it related to the previous data sets
+if(x[1] < 0) { 
+  print("x*log(x) is not defined") 
+} else { 
+    print(x[1])
+}
+print("done")
+```
+#### Loops
+
+```{r}
+y<- c(0,1e-5,5,10,-5,4.5) # # to present the information we can name anything y_val a new variable
+for (y_val in y) { # y_val variable contains corresponding value
+print(y_val)  # print and cat has to be in different lines to publish the command otherwise it doesnt work.
+  cat(y_val, "\n") # \backslash 
+}
+```
+```{r}
+library(ggplot2)
+data(diamonds)
+force(diamonds)
+```
+
+```{r}
+diamonds_cuts <-
+  diamonds |> pull(cut) |> levels() # extract from diamonds, then look at cut and then look at distinct things (other way to do it), maybe with distinct also you can do it
+diamonds_cuts
+```
+
+```{r}
+for (one_cut in diamonds_cuts) {
+  print ( diamonds |>
+    filter(cut==one_cut) |> # till here we filter and 5 times for each of possible cuts]
+    ggplot(aes(x=carat, y =price)) +
+    geom_bin2d() +
+      ggtitle(one_cut)) # by print we get the visual display
+}
+```
+```{r}
+# you wont understand this easily * code
+all_models <- vector(mode = "list", length = length(diamonds_cuts))
+for (one_cut in diamonds_cuts) {
+  some_diamonds <- diamonds |>
+    filter(cut==one_cut) |>
+    select(!cut)
+    one_figure <- some_diamonds |>
+    ggplot(aes(x=carat, y =price)) +
+    geom_bin2d() +
+      ggtitle(one_cut) # by print we get the visual display
+    print(one_figure)
+    price_model <- glm(price ~., family = poisson (), data = some_diamonds) # loop does the same thing for subparts of the data sets
+    print(summary(price_model))
+    all_models[[one_cut]] <- price_model
+}
+```
+
